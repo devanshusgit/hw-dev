@@ -71,9 +71,7 @@ async function getPosts() {
 }
 
 async function savePosts(posts) {
-  if (hasSupabase && CONFIG.provider === 'supabase') {
-    return false;
-  }
+  if (hasSupabase && CONFIG.provider === 'supabase') return false;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
   return true;
 }
@@ -185,12 +183,8 @@ async function renderAdminList() {
     </div>
   `).join('');
 
-  list.querySelectorAll('[data-edit]').forEach((btn) => {
-    btn.addEventListener('click', () => fillAdminForm(btn.getAttribute('data-edit')));
-  });
-  list.querySelectorAll('[data-delete]').forEach((btn) => {
-    btn.addEventListener('click', () => deletePost(btn.getAttribute('data-delete')));
-  });
+  list.querySelectorAll('[data-edit]').forEach((btn) => btn.addEventListener('click', () => fillAdminForm(btn.getAttribute('data-edit'))));
+  list.querySelectorAll('[data-delete]').forEach((btn) => btn.addEventListener('click', () => deletePost(btn.getAttribute('data-delete'))));
 }
 
 async function fillAdminForm(id) {
@@ -318,37 +312,35 @@ function initSearch() {
 }
 
 function initGlobe() {
-  const map = {
-    canada: {
-      title: 'Canada',
-      text: 'Career-focused education, strong student demand, and clear postgraduate pathways for many practical profiles.'
-    },
-    uk: {
-      title: 'United Kingdom',
-      text: 'High brand recognition, strong postgraduate routes, and globally respected universities across disciplines.'
-    },
-    ireland: {
-      title: 'Ireland',
-      text: 'A fast-growing destination with strong tech visibility and increasing appeal for international students.'
-    },
-    germany: {
-      title: 'Germany',
-      text: 'Known for engineering, innovation, and value-driven education for students seeking strong technical options.'
-    },
-    italy: {
-      title: 'Italy',
-      text: 'Useful for creative, design, architecture, and business-oriented international pathways.'
-    },
-    australia: {
-      title: 'Australia',
-      text: 'High-quality institutions, strong student communities, and a globally attractive campus experience.'
-    }
-  };
-
+  const shell = document.querySelector('.globe-shell');
   const title = document.getElementById('countryTitle');
   const text = document.getElementById('countryText');
   const pins = document.querySelectorAll('.globe-pin[data-country]');
-  if (!pins.length || !title || !text) return;
+  if (!shell || !pins.length || !title || !text) return;
+
+  const map = {
+    canada: { title: 'Canada', text: 'Career-focused education, strong student demand, and clear postgraduate pathways for many practical profiles.' },
+    uk: { title: 'United Kingdom', text: 'High brand recognition, strong postgraduate routes, and globally respected universities across disciplines.' },
+    ireland: { title: 'Ireland', text: 'A fast-growing destination with strong tech visibility and increasing appeal for international students.' },
+    germany: { title: 'Germany', text: 'Known for engineering, innovation, and value-driven education for students seeking strong technical options.' },
+    italy: { title: 'Italy', text: 'Useful for creative, design, architecture, and business-oriented international pathways.' },
+    australia: { title: 'Australia', text: 'High-quality institutions, strong student communities, and a globally attractive campus experience.' }
+  };
+
+  let rotation = 0;
+  let autoRotate = true;
+
+  function animate() {
+    if (autoRotate) {
+      rotation += 0.15;
+      shell.style.transform = `rotate(${rotation}deg)`;
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  shell.addEventListener('mouseenter', () => { autoRotate = false; });
+  shell.addEventListener('mouseleave', () => { autoRotate = true; });
 
   pins.forEach((pin) => {
     pin.addEventListener('click', () => {
