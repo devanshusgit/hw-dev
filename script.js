@@ -3,9 +3,7 @@ const SESSION_KEY = 'hwdev_admin_session';
 const CONFIG = window.HWDEV_BACKEND || {
   provider: 'local',
   supabaseUrl: '',
-  supabaseAnonKey: '',
-  adminUsername: 'admin',
-  adminPassword: 'hwdev123'
+  supabaseAnonKey: ''
 };
 
 const defaultPosts = [
@@ -97,7 +95,7 @@ async function signInAdmin(email, password) {
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     return !error;
   }
-  return email === CONFIG.adminUsername && password === CONFIG.adminPassword;
+  return false;
 }
 
 async function signOutAdmin() {
