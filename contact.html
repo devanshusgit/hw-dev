@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Contact HW Dev for study abroad consultation." />
+  <title>Contact | HW Dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell inner-page">
+    <header class="topbar">
+      <a href="index.html" class="mini-chip">← Home</a>
+      <div class="brand">HW Dev</div>
+      <nav class="top-actions"><a href="services.html" class="mini-chip">View Services</a></nav>
+    </header>
+    <main class="container page-content reveal visible">
+      <section class="section-head center compact">
+        <span class="eyebrow">Contact</span>
+        <h1 class="page-title">Let’s plan your study abroad journey</h1>
+        <p>Use the form below. It works with WhatsApp now and is ready to plug into a backend endpoint later.</p>
+      </section>
+      <section class="cta-section single">
+        <div class="cta-copy">
+          <h2>Book a consultation</h2>
+          <p>You can connect through WhatsApp instantly, email, or later wire this form to Formspree, Resend, Supabase, or your own backend.</p>
+          <div class="quick-links">
+            <a class="btn btn-secondary" href="https://wa.me/919326213082" target="_blank" rel="noopener">Direct WhatsApp</a>
+            <a class="btn btn-secondary" href="mailto:hello@hwdev.com">Email</a>
+          </div>
+        </div>
+        <form class="contact-form" id="leadForm">
+          <div class="form-grid">
+            <input type="text" name="name" placeholder="Your name" required>
+            <input type="tel" name="phone" placeholder="Phone / WhatsApp" required>
+            <input type="email" name="email" placeholder="Email address">
+            <select name="destination" required>
+              <option value="">Preferred destination</option>
+              <option>United Kingdom</option>
+              <option>Canada</option>
+              <option>Ireland</option>
+              <option>Germany</option>
+              <option>Australia</option>
+              <option>Italy</option>
+            </select>
+          </div>
+          <textarea name="message" rows="5" placeholder="Tell us about your course interest, budget, or goals"></textarea>
+          <div class="contact-actions">
+            <button type="submit" class="btn btn-primary">Continue on WhatsApp</button>
+          </div>
+          <p class="form-note" id="formNote">Production-ready front-end flow. Backend endpoint can be connected later without redesigning the UI.</p>
+        </form>
+      </section>
+    </main>
+    <footer class="site-footer"><div><strong>HW Dev</strong><p>Premium study abroad website concept.</p></div><div class="footer-links"><a href="index.html">Home</a><a href="about.html">About</a><a href="services.html">Services</a></div></footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
