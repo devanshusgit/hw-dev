@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="HW Dev blog admin panel." />
+  <title>Blog Admin | HW Dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell inner-page">
+    <header class="topbar">
+      <a href="blog.html" class="mini-chip">← Blog</a>
+      <div class="brand">HW Dev</div>
+      <nav class="top-actions nav-links">
+        <a href="index.html" class="mini-chip">Home</a>
+        <a href="contact.html" class="mini-chip">Contact</a>
+        <a href="#" id="adminLogoutBtn" class="mini-chip">Logout</a>
+      </nav>
+    </header>
+    <main class="container page-content reveal visible">
+      <section class="section-head center compact">
+        <span class="eyebrow">Admin</span>
+        <h1 class="page-title">Manage blog posts</h1>
+        <p>Simple front-end admin for adding, editing, and deleting blog entries stored locally in the browser.</p>
+      </section>
+
+      <section class="admin-layout">
+        <form id="blogAdminForm" class="info-card admin-form">
+          <h2>Create / Edit Post</h2>
+          <input type="hidden" id="postId">
+          <input id="postTitle" type="text" placeholder="Post title" required>
+          <input id="postCategory" type="text" placeholder="Category (e.g. Visa, UK, SOP)" required>
+          <input id="postAuthor" type="text" placeholder="Author" required>
+          <input id="postDate" type="date" required>
+          <textarea id="postExcerpt" rows="3" placeholder="Short excerpt" required></textarea>
+          <textarea id="postContent" rows="10" placeholder="Full blog content" required></textarea>
+          <div class="contact-actions">
+            <button type="submit" class="btn btn-primary">Save Post</button>
+            <button type="button" id="resetPostForm" class="btn btn-secondary">Reset</button>
+          </div>
+          <p class="form-note">This admin is local-browser based. Later it can connect to Supabase, Firebase, or a CMS.</p>
+        </form>
+
+        <section class="info-card admin-posts">
+          <h2>Existing Posts</h2>
+          <div id="adminPostList" class="admin-post-list"></div>
+        </section>
+      </section>
+    </main>
+    <footer class="site-footer"><div><strong>HW Dev</strong><p>Premium study abroad website concept.</p></div><div class="footer-links"><a href="index.html">Home</a><a href="blog.html">Blog</a><a href="services.html">Services</a></div></footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
