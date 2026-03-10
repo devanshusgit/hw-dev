@@ -317,6 +317,51 @@ function initSearch() {
   search.addEventListener('input', () => renderBlogList(search.value));
 }
 
+function initGlobe() {
+  const map = {
+    canada: {
+      title: 'Canada',
+      text: 'Career-focused education, strong student demand, and clear postgraduate pathways for many practical profiles.'
+    },
+    uk: {
+      title: 'United Kingdom',
+      text: 'High brand recognition, strong postgraduate routes, and globally respected universities across disciplines.'
+    },
+    ireland: {
+      title: 'Ireland',
+      text: 'A fast-growing destination with strong tech visibility and increasing appeal for international students.'
+    },
+    germany: {
+      title: 'Germany',
+      text: 'Known for engineering, innovation, and value-driven education for students seeking strong technical options.'
+    },
+    italy: {
+      title: 'Italy',
+      text: 'Useful for creative, design, architecture, and business-oriented international pathways.'
+    },
+    australia: {
+      title: 'Australia',
+      text: 'High-quality institutions, strong student communities, and a globally attractive campus experience.'
+    }
+  };
+
+  const title = document.getElementById('countryTitle');
+  const text = document.getElementById('countryText');
+  const pins = document.querySelectorAll('.globe-pin[data-country]');
+  if (!pins.length || !title || !text) return;
+
+  pins.forEach((pin) => {
+    pin.addEventListener('click', () => {
+      const key = pin.getAttribute('data-country');
+      if (!map[key]) return;
+      pins.forEach((p) => p.classList.remove('active'));
+      pin.classList.add('active');
+      title.textContent = map[key].title;
+      text.textContent = map[key].text;
+    });
+  });
+}
+
 function initReveal() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -335,4 +380,5 @@ initAdminLogout();
 initAdmin();
 initLeadForm();
 initSearch();
+initGlobe();
 initReveal();
