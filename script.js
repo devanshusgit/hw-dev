@@ -38,6 +38,9 @@ const defaultPosts = [
   }
 ];
 
+const hasSupabase = typeof window.supabase !== 'undefined' && CONFIG.supabaseUrl && CONFIG.supabaseAnonKey;
+const supabaseClient = hasSupabase ? window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey) : null;
+
 function isAdminAuthenticated() {
   return sessionStorage.getItem(SESSION_KEY) === 'true';
 }
@@ -49,15 +52,10 @@ function requireAdmin() {
 }
 
 async function getPosts() {
-  if (CONFIG.provider === 'supabase' && CONFIG.supabaseUrl && CONFIG.supabaseAnonKey) {
+  if (hasSupabase && CONFIG.provider === 'supabase') {
     try {
-      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/posts?select=*`, {
-        headers: {
-          apikey: CONFIG.supabaseAnonKey,
-          Authorization: `Bearer ${CONFIG.supabaseAnonKey}`,
-        },
-      });
-      if (res.ok) return await res.json();
+      const { data, error } = await supabaseClient.from('posts').select('*').order('date', { ascending: false });
+      if (!error && data) return data;
     } catch {}
   }
 
@@ -75,11 +73,38 @@ async function getPosts() {
 }
 
 async function savePosts(posts) {
-  if (CONFIG.provider === 'supabase' && CONFIG.supabaseUrl && CONFIG.supabaseAnonKey) {
+  if (hasSupabase && CONFIG.provider === 'supabase') {
     return false;
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
   return true;
+}
+
+async function savePostToSupabase(post) {
+  if (!(hasSupabase && CONFIG.provider === 'supabase')) return false;
+  const { error } = await supabaseClient.from('posts').upsert(post);
+  return !error;
+}
+
+async function deletePostFromSupabase(id) {
+  if (!(hasSupabase && CONFIG.provider === 'supabase')) return false;
+  const { error } = await supabaseClient.from('posts').delete().eq('id', id);
+  return !error;
+}
+
+async function signInAdmin(email, password) {
+  if (hasSupabase && CONFIG.provider === 'supabase') {
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    return !error;
+  }
+  return email === CONFIG.adminUsername && password === CONFIG.adminPassword;
+}
+
+async function signOutAdmin() {
+  if (hasSupabase && CONFIG.provider === 'supabase') {
+    try { await supabaseClient.auth.signOut(); } catch {}
+  }
+  sessionStorage.removeItem(SESSION_KEY);
 }
 
 function escapeHtml(str) {
@@ -107,21 +132,18 @@ function postCard(post, full = false) {
 async function renderBlogPreview() {
   const el = document.getElementById('blogPreview');
   if (!el) return;
-  const posts = (await getPosts()).slice().sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 3);
+  const posts = (await getPosts()).slice(0, 3);
   el.innerHTML = posts.map((post) => postCard(post)).join('');
 }
 
 async function renderBlogList(filter = '') {
   const el = document.getElementById('blogGrid');
   if (!el) return;
-  const posts = (await getPosts())
-    .slice()
-    .sort((a,b) => new Date(b.date) - new Date(a.date))
-    .filter((post) => {
-      const q = filter.trim().toLowerCase();
-      if (!q) return true;
-      return [post.title, post.category, post.excerpt, post.content, post.author].join(' ').toLowerCase().includes(q);
-    });
+  const posts = (await getPosts()).filter((post) => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return true;
+    return [post.title, post.category, post.excerpt, post.content, post.author].join(' ').toLowerCase().includes(q);
+  });
   el.innerHTML = posts.length ? posts.map((post) => postCard(post, true)).join('') : '<div class="info-card"><h2>No posts found</h2><p>Try another search term.</p></div>';
 }
 
@@ -151,7 +173,7 @@ async function renderSinglePost() {
 async function renderAdminList() {
   const list = document.getElementById('adminPostList');
   if (!list) return;
-  const posts = (await getPosts()).slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+  const posts = await getPosts();
   list.innerHTML = posts.map((post) => `
     <div class="admin-post-item">
       <div>
@@ -193,8 +215,11 @@ function resetAdminForm() {
 }
 
 async function deletePost(id) {
-  const posts = (await getPosts()).filter((p) => p.id !== id);
-  await savePosts(posts);
+  if (hasSupabase && CONFIG.provider === 'supabase') await deletePostFromSupabase(id);
+  else {
+    const posts = (await getPosts()).filter((p) => p.id !== id);
+    await savePosts(posts);
+  }
   await renderAdminList();
   await renderBlogPreview();
   await renderBlogList(document.getElementById('blogSearch')?.value || '');
@@ -204,15 +229,16 @@ function initAdminLogin() {
   const form = document.getElementById('adminLoginForm');
   const note = document.getElementById('adminLoginNote');
   if (!form) return;
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('adminUsername').value.trim();
     const password = document.getElementById('adminPassword').value;
-    if (username === CONFIG.adminUsername && password === CONFIG.adminPassword) {
+    const ok = await signInAdmin(username, password);
+    if (ok) {
       sessionStorage.setItem(SESSION_KEY, 'true');
       window.location.href = 'admin.html';
     } else if (note) {
-      note.textContent = 'Invalid login. Update credentials in backend-config.example.js / script.js before deployment.';
+      note.textContent = hasSupabase ? 'Invalid Supabase login.' : 'Invalid login. Update credentials before deployment.';
     }
   });
 }
@@ -220,9 +246,9 @@ function initAdminLogin() {
 function initAdminLogout() {
   const btn = document.getElementById('adminLogoutBtn');
   if (!btn) return;
-  btn.addEventListener('click', (e) => {
+  btn.addEventListener('click', async (e) => {
     e.preventDefault();
-    sessionStorage.removeItem(SESSION_KEY);
+    await signOutAdmin();
     window.location.href = 'admin-login.html';
   });
 }
@@ -234,10 +260,8 @@ function initAdmin() {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const posts = await getPosts();
-    const id = document.getElementById('postId').value || Date.now().toString();
     const post = {
-      id,
+      id: document.getElementById('postId').value || Date.now().toString(),
       title: document.getElementById('postTitle').value,
       category: document.getElementById('postCategory').value,
       author: document.getElementById('postAuthor').value,
@@ -245,10 +269,17 @@ function initAdmin() {
       excerpt: document.getElementById('postExcerpt').value,
       content: document.getElementById('postContent').value,
     };
-    const existingIndex = posts.findIndex((p) => p.id === id);
-    if (existingIndex >= 0) posts[existingIndex] = post;
-    else posts.push(post);
-    await savePosts(posts);
+
+    if (hasSupabase && CONFIG.provider === 'supabase') {
+      await savePostToSupabase(post);
+    } else {
+      const posts = await getPosts();
+      const existingIndex = posts.findIndex((p) => p.id === post.id);
+      if (existingIndex >= 0) posts[existingIndex] = post;
+      else posts.push(post);
+      await savePosts(posts);
+    }
+
     await renderAdminList();
     await renderBlogPreview();
     await renderBlogList(document.getElementById('blogSearch')?.value || '');
@@ -293,7 +324,7 @@ function initReveal() {
     entries.forEach((entry) => {
       if (entry.isIntersecting) entry.target.classList.add('visible');
     });
-  }, { threshold: 0.15 });
+  }, { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 }
 
